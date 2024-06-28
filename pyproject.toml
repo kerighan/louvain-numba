@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "louvain-numba"
+version = "0.0.0"
+description = "A package for fast community detection in graphs using the Louvain method with Numba optimization."
+authors = ["Maixent Chenebaux <max.chbx@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+networkx = "^3.1.0"
+numba = "^0.58.1"
+numpy = "^1.26.2"
+scipy = "^1.11.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
