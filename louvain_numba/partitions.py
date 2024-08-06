@@ -3,8 +3,16 @@ from numba import jit, float64
 from numba.typed import Dict, List
 from typing import Union, Tuple, Generator
 
-from .utils import (_get_adj_matrix, _init_status, _neighcom, _remove, _insert,
-                    _modularity, _renumber, _induced_graph)
+from .utils import (
+    _get_adj_matrix,
+    _init_status,
+    _neighcom,
+    _remove,
+    _insert,
+    _modularity,
+    _renumber,
+    _induced_graph,
+)
 from .typing import FloatArray, IntArray, SparseMatrix, Graph
 
 
@@ -18,7 +26,7 @@ def _one_step(
     degrees: FloatArray,
     gdegrees: FloatArray,
     total_weight: float,
-    resolution: float
+    resolution: float,
 ) -> None:
     """
     Perform one step of the Louvain method.
@@ -124,8 +132,7 @@ def _one_level(
     """Perform one level of the Louvain method."""
     modified = True
     nb_pass_done = 0
-    cur_mod = _modularity(
-        node2com, internals, degrees, total_weight, resolution)
+    cur_mod = _modularity(node2com, internals, degrees, total_weight, resolution)
     new_mod = cur_mod
 
     while modified and nb_pass_done != PASS_MAX:
@@ -135,8 +142,7 @@ def _one_level(
 
         for node in range(n_nodes):
             node_com = node2com[node]
-            neighbor_weight = _neighcom(
-                node, graph_neighbors, graph_weights, node2com)
+            neighbor_weight = _neighcom(node, graph_neighbors, graph_weights, node2com)
             _remove(
                 node,
                 node_com,
@@ -152,9 +158,8 @@ def _one_level(
 
             for com in neighbor_weight:
                 weight = neighbor_weight[com]
-                increase = (
-                    resolution * weight - (degrees[com] * gdegrees[node]) /
-                    (2.0 * total_weight)
+                increase = resolution * weight - (degrees[com] * gdegrees[node]) / (
+                    2.0 * total_weight
                 )
                 if increase > best_increase:
                     best_increase = increase
@@ -173,8 +178,7 @@ def _one_level(
             if best_com != node_com:
                 modified = True
 
-        new_mod = _modularity(
-            node2com, internals, degrees, total_weight, resolution)
+        new_mod = _modularity(node2com, internals, degrees, total_weight, resolution)
         if new_mod - cur_mod < MIN:
             break
 
@@ -191,10 +195,8 @@ def _generate_dendrogram(
     full_hierarchy: bool = False,
 ) -> Tuple[List[IntArray], List[float]]:
     """Generate the dendrogram using the Louvain method."""
-    graph_neighbors = [indices[indptr[i]: indptr[i + 1]]
-                       for i in range(n_nodes)]
-    graph_weights = [data[indptr[i]: indptr[i + 1]]
-                     for i in range(n_nodes)]
+    graph_neighbors = [indices[indptr[i] : indptr[i + 1]] for i in range(n_nodes)]
+    graph_weights = [data[indptr[i] : indptr[i + 1]] for i in range(n_nodes)]
 
     node2com, internals, loops, degrees, gdegrees, total_weight = _init_status(
         n_nodes, graph_neighbors, graph_weights
@@ -214,8 +216,7 @@ def _generate_dendrogram(
         PASS_MAX,
         MIN,
     )
-    new_mod = _modularity(
-        node2com, internals, degrees, total_weight, resolution)
+    new_mod = _modularity(node2com, internals, degrees, total_weight, resolution)
 
     partition_list = []
     modularities = List.empty_list(float64)
@@ -246,8 +247,7 @@ def _generate_dendrogram(
             MIN,
         )
         mod = new_mod
-        new_mod = _modularity(
-            node2com, internals, degrees, total_weight, resolution)
+        new_mod = _modularity(node2com, internals, degrees, total_weight, resolution)
         if new_mod - mod < MIN:
             break
         communities, node2com = _renumber(node2com, new_n_nodes)
@@ -256,10 +256,8 @@ def _generate_dendrogram(
         new_n_nodes, graph_neighbors, graph_weights = _induced_graph(
             communities, graph_neighbors, graph_weights, node2com
         )
-        node2com, internals, loops, degrees, gdegrees, total_weight = (
-            _init_status(
-                new_n_nodes, graph_neighbors, graph_weights
-            )
+        node2com, internals, loops, degrees, gdegrees, total_weight = _init_status(
+            new_n_nodes, graph_neighbors, graph_weights
         )
 
     if full_hierarchy:
@@ -290,9 +288,7 @@ def _generate_dendrogram(
                     communities, graph_neighbors, graph_weights, node2com
                 )
                 node2com, internals, loops, degrees, gdegrees, total_weight = (
-                    _init_status(
-                        new_n_nodes, graph_neighbors, graph_weights
-                    )
+                    _init_status(new_n_nodes, graph_neighbors, graph_weights)
                 )
 
     return partition_list, modularities
@@ -304,7 +300,7 @@ def _find_best_partition(
     indptr: IntArray,
     indices: IntArray,
     n_nodes: int,
-    resolution: float = 1.0
+    resolution: float = 1.0,
 ) -> Tuple[Dict, float]:
     """Find the best partition of the graph."""
     dendrogram, mods = _generate_dendrogram(
@@ -329,12 +325,11 @@ def _find_all_partitions(
     indptr: IntArray,
     indices: IntArray,
     n_nodes: int,
-    resolution: float = 1.0
+    resolution: float = 1.0,
 ) -> Generator[Tuple[Dict, float], None, None]:
     """Find all partitions of the graph."""
     dendrogram, mods = _generate_dendrogram(
-        data, indptr, indices, n_nodes,
-        full_hierarchy=True, resolution=resolution
+        data, indptr, indices, n_nodes, full_hierarchy=True, resolution=resolution
     )
 
     for start_level in range(len(dendrogram), 0, -1):
@@ -353,7 +348,7 @@ def _find_all_partitions(
 def find_partitions(
     graph: Union[SparseMatrix, np.ndarray, Graph],
     resolution: float = 1.0,
-    return_modularity: bool = False
+    return_modularity: bool = False,
 ) -> Generator[Union[Dict, Tuple[Dict, float]], None, None]:
     """Find all partitions of the given graph."""
     data, indptr, indices, n_nodes = _get_adj_matrix(graph)
@@ -369,14 +364,40 @@ def find_partitions(
 def best_partition(
     graph: Union[SparseMatrix, np.ndarray, Graph],
     resolution: float = 1.0,
-    return_modularity: bool = False
+    return_modularity: bool = False,
+    n_clusters: Union[tuple, int] = None,
 ) -> Union[Dict, Tuple[Dict, float]]:
     """Find the best partition of the given graph."""
     data, indptr, indices, n_nodes = _get_adj_matrix(graph)
-    partition, mod = _find_best_partition(
-        data, indptr, indices, n_nodes, resolution=resolution
-    )
-    if return_modularity:
-        return partition, mod
+    if n_clusters is None:
+        partition, mod = _find_best_partition(
+            data, indptr, indices, n_nodes, resolution=resolution
+        )
+        if return_modularity:
+            return partition, mod
+        else:
+            return partition
     else:
-        return partition
+        # iterate through the partitions and return the one with the desired number of clusters
+        best_score = -np.inf
+        best_mod = -np.inf
+        best_partition = None
+        for partition, mod in _find_all_partitions(
+            data, indptr, indices, n_nodes, resolution=resolution
+        ):
+            n_clusters_found = len(set(partition.values()))
+            if isinstance(n_clusters, int):
+                dist = abs(n_clusters_found - n_clusters)
+                score = -dist
+            elif isinstance(n_clusters, tuple):
+                min_clusters, max_clusters = n_clusters
+                if min_clusters <= n_clusters_found <= max_clusters:
+                    score = mod * 1e3
+            if score > best_score:
+                best_mod = mod
+                best_score = score
+                best_partition = partition
+        if return_modularity:
+            return best_partition, best_mod
+        else:
+            return best_partition

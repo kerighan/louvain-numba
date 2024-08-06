@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "louvain-numba"
-version = "0.0.0"
+version = "0.0.1"
 description = "A package for fast community detection in graphs using the Louvain method with Numba optimization."
 authors = ["Maixent Chenebaux <max.chbx@gmail.com>"]
 license = "MIT"

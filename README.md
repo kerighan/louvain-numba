@@ -43,6 +43,24 @@ modularity = lvn.modularity(partition, G)
 print("Modularity:", modularity)
 ```
 
+### Specify prefered number of clusters
+
+```python
+import networkx as nx
+import louvain_numba as lvn
+
+# Create a random graph
+G = nx.random_partition_graph([100, 100, 100], 0.1, 0.01)
+
+# Find the best partition
+partition = lvn.best_partition(G, n_clusters=(7, 10))
+print("Best partition:", partition)
+
+# Calculate modularity
+modularity = lvn.modularity(partition, G)
+print("Modularity:", modularity)
+```
+
 ### Full Hierarchy
 
 ```python
