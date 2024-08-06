@@ -393,6 +393,8 @@ def best_partition(
                 min_clusters, max_clusters = n_clusters
                 if min_clusters <= n_clusters_found <= max_clusters:
                     score = mod * 1e3
+                else:
+                    score = mod
             if score > best_score:
                 best_mod = mod
                 best_score = score
