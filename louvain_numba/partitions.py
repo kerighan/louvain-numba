@@ -389,16 +389,16 @@ def best_partition(
             if isinstance(n_clusters, int):
                 dist = abs(n_clusters_found - n_clusters)
                 score = -dist
-            elif isinstance(n_clusters, tuple):
+            elif isinstance(n_clusters, (tuple, list)):
                 min_clusters, max_clusters = n_clusters
                 if min_clusters <= n_clusters_found <= max_clusters:
-                    score = mod * 1e3
-                else:
                     score = mod
+                else:
+                    score = mod * 1e-3
             if score > best_score:
                 best_mod = mod
                 best_score = score
-                best_partition = partition
+                best_partition = partition.copy()
         if return_modularity:
             return best_partition, best_mod
         else:
